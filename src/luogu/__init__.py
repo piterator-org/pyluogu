@@ -57,3 +57,4 @@ class User(Model):
         self.follower_count: int = user["followerCount"]
         self.ranking: int = user["ranking"]
         self.background: str = user["background"]
+        self.is_root: bool = user["isRoot"] if "isRoot" in user else None
