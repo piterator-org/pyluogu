@@ -1,3 +1,13 @@
+"""
+=======
+PyLuogu
+=======
+
+A model-based Python implement for Luogu API client
+
+洛谷 API 客户端基于模块的 Python 实现
+"""
+
 import requests
 
 USER_AGENT = "Mozilla/5.0"
@@ -26,7 +36,16 @@ class Model:
 
 
 class User(Model):
-    def __init__(self, uid) -> None:
+    """用户
+
+    :param uid: 用户 ID
+    :type uid: int
+
+    :var register_time: 注册时间
+    :vartype register_time: int
+    """
+
+    def __init__(self, uid: int) -> None:
         class Prize(Model):
             def __init__(self, year, contestName, prize) -> None:
                 self.year: int = year
