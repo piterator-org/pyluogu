@@ -1,11 +1,10 @@
 """
-=======
 PyLuogu
 =======
 
 A model-based Python implement for Luogu API client
 
-洛谷 API 客户端基于模块的 Python 实现
+洛谷 API 客户端基于模型的 Python 实现
 """
 
 import requests
@@ -43,22 +42,68 @@ class User(Model):
 
     :var register_time: 注册时间
     :vartype register_time: int
+    :var introduction: 个人介绍
+    :vartype introduction: str
+    :var prize: 获奖信息
+    :vartype prize: list[Prize]
+    :var blog_address: 个人博客地址
+    :vartype blog_address: str
+    :var passed_problem_count: 已通过题目数量
+    :vartype passed_problem_count: int | None
+    :var submitted_problem_count: 提交题目数量
+    :vartype submitted_problem_count: int | None
+    :var uid: 用户 ID
+    :vartype uid: int
+    :var name: 用户名
+    :vartype name: str
+    :var slogan: 个性签名
+    :vartype slogan: str
+    :var badge: 徽章
+    :vartype badge: str | None
+    :var is_admin: 是否管理员
+    :vartype is_admin: bool
+    :var is_banned: 是否被封禁
+    :vartype is_banned: bool
+    :var color: 颜色
+    :vartype color: str
+    :var ccf_level: CCF 等级
+    :vartype ccf_level: int
+    :var following_count: 关注数量
+    :vartype following_count: int
+    :var follower_count: 粉丝数量
+    :vartype follower_count: int
+    :var ranking: 排名
+    :vartype ranking: int
+    :var background: 封面
+    :vartype background: str
+    :var is_root: 是否为 root
+    :vartype is_root: bool | None
     """
 
-    def __init__(self, uid: int) -> None:
-        class Prize(Model):
-            def __init__(self, year, contestName, prize) -> None:
-                self.year: int = year
-                self.contest_name: str = contestName
-                self.prize: str = prize
+    class Prize(Model):
+        """获奖信息
 
+        :var year: 年份
+        :vartype year: int
+        :var contest_name: 竞赛名称
+        :vartype contest_name: str
+        :var prize: 奖项
+        :vartype prize: str
+        """
+
+        def __init__(self, year: int, contestName: str, prize: str) -> None:
+            self.year = year
+            self.contest_name = contestName
+            self.prize = prize
+
+    def __init__(self, uid: int) -> None:
         self._raw_response_json: dict = _get(
             f"https://www.luogu.com.cn/user/{uid}"
         )
         user = self._raw_response_json["currentData"]["user"]
         self.register_time: int = user["registerTime"]
         self.introduction: str = user["introduction"]
-        self.prize = [Prize(**prize) for prize in user["prize"]]
+        self.prize = [self.Prize(**prize) for prize in user["prize"]]
         self.blog_address: str = user["blogAddress"]
         self.passed_problem_count: int | None = user["passedProblemCount"]
         self.submitted_problem_count: int | None = user[

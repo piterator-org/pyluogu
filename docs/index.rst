@@ -12,7 +12,8 @@ Welcome to PyLuogu's documentation!
 
    introduction.rst
    installation.rst
-   usage.rst
+   getting_started.rst
+   reference.rst
 
 
 
