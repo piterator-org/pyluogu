@@ -30,6 +30,7 @@ author = 'Piterator'
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
+    "sphinx_inline_tabs",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
