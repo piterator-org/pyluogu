@@ -82,42 +82,27 @@ class User(Model):
 
     :raises NotFoundHttpException: 用户未找到
 
-    :var register_time: 注册时间
-    :vartype register_time: int
-    :var introduction: 个人介绍
-    :vartype introduction: str
-    :var prize: 获奖信息
-    :vartype prize: list[Prize]
-    :var blog_address: 个人博客地址
-    :vartype blog_address: str
+    :var int register_time: 注册时间
+    :var str introduction: 个人介绍
+    :var list[Prize] prize: 获奖信息
+    :var str blog_address: 个人博客地址
     :var passed_problem_count: 已通过题目数量
     :vartype passed_problem_count: int | None
     :var submitted_problem_count: 提交题目数量
     :vartype submitted_problem_count: int | None
-    :var uid: 用户 ID
-    :vartype uid: int
-    :var name: 用户名
-    :vartype name: str
-    :var slogan: 个性签名
-    :vartype slogan: str
+    :var int uid: 用户 ID
+    :var str name: 用户名
+    :var str slogan: 个性签名
     :var badge: 徽章
     :vartype badge: str | None
-    :var is_admin: 是否管理员
-    :vartype is_admin: bool
-    :var is_banned: 是否被封禁
-    :vartype is_banned: bool
-    :var color: 颜色
-    :vartype color: str
-    :var ccf_level: CCF 等级
-    :vartype ccf_level: int
-    :var following_count: 关注数量
-    :vartype following_count: int
-    :var follower_count: 粉丝数量
-    :vartype follower_count: int
-    :var ranking: 排名
-    :vartype ranking: int
-    :var background: 封面
-    :vartype background: str
+    :var bool is_admin: 是否管理员
+    :var bool is_banned: 是否被封禁
+    :var str color: 颜色
+    :var int ccf_level: CCF 等级
+    :var int following_count: 关注数量
+    :var int follower_count: 粉丝数量
+    :var int ranking: 排名
+    :var str background: 封面
     :var is_root: 是否为 root
     :vartype is_root: bool | None
     :var passed_problems: 已通过的题目
@@ -201,48 +186,29 @@ class Problem(Model):
 
     :raises NotFoundHttpException: 题目未找到
 
-    :var background: 题目背景
-    :vartype background: str
-    :var description: 题目描述
-    :vartype description: str
-    :var input_format: 输入格式
-    :vartype input_format: str
-    :var output_format: 输出格式
-    :vartype output_format: str
+    :var str background: 题目背景
+    :var str description: 题目描述
+    :var str input_format: 输入格式
+    :var str output_format: 输出格式
     :var samples: 样例
     :vartype samples: list[tuple[str, str]]
-    :var hint: 说明/提示
-    :vartype hint: str
-    :var provider: 题目提供者
-    :vartype provider: User
-    :var attachments: 附件
-    :vartype attachments: list[dict]
-    :var can_edit: 可编辑
-    :vartype can_edit: bool
+    :var str hint: 说明/提示
+    :var User provider: 题目提供者
+    :var list[dict] attachments: 附件
+    :var bool can_edit: 可编辑
     :var limits: 限制
     :vartype limits: dict[str, list[int]]
-    :var std_code: 标准代码
-    :vartype std_code: str
-    :var tags: 标签
-    :vartype tags: list[int]
-    :var wants_translation: 需要翻译
-    :vartype wants_translation: bool
-    :var total_submit: 总提交
-    :vartype total_submit: int
-    :var total_accepted: 总通过
-    :vartype total_accepted: int
-    :var flag:
-    :vartype flag: int
-    :var pid: 题目 ID
-    :vartype pid: str
-    :var title: 题目标题
-    :vartype title: str
-    :var difficulty: 难度
-    :vartype difficulty: int
-    :var full_score: 满分
-    :vartype full_score: int
-    :var type: 题目类型
-    :vartype type: str
+    :var str std_code: 标准代码
+    :var list[int] tags: 标签
+    :var bool wants_translation: 需要翻译
+    :var int total_submit: 总提交
+    :var int total_accepted: 总通过
+    :var int flag:
+    :var str pid: 题目 ID
+    :var str title: 题目标题
+    :var int difficulty: 难度
+    :var int full_score: 满分
+    :var str type: 题目类型
     """
 
     def __init__(self, pid: str) -> None:
