@@ -9,6 +9,7 @@
 ====
 
 .. autoclass:: luogu.Problem
+   :members:
 
 .. autoclass:: luogu.User
    :members:

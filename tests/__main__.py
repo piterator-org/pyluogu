@@ -69,6 +69,11 @@ class TestProblem(unittest.TestCase):
         p = luogu.Problem("P1001")
         self.assertEqual(p.pid, "P1001")
 
+    def test_attachment(self):
+        attachment = luogu.Problem("P7912").attachments[0]
+        self.assertIsInstance(attachment, luogu.Problem.Attachment)
+        self.assertEqual(attachment.filename, "fruit.zip")
+
 
 class TestSession(unittest.TestCase):
     def test_creation(self):

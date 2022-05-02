@@ -136,12 +136,9 @@ class User(Model):
     class Prize(Model):
         """获奖信息
 
-        :var year: 年份
-        :vartype year: int
-        :var contest_name: 竞赛名称
-        :vartype contest_name: str
-        :var prize: 奖项
-        :vartype prize: str
+        :var int year: 年份
+        :var str contest_name: 竞赛名称
+        :var str prize: 奖项
         """
 
         def __init__(self, year: int, contestName: str, prize: str) -> None:
@@ -217,7 +214,7 @@ class Problem(Model):
     :vartype samples: list[tuple[str, str]]
     :var str hint: 说明/提示
     :var User provider: 题目提供者
-    :var list[dict] attachments: 附件
+    :var list[Attachment] attachments: 附件
     :var bool can_edit: 可编辑
     :var limits: 限制
     :vartype limits: dict[str, list[int]]
@@ -249,7 +246,10 @@ class Problem(Model):
         ]
         self.hint: str = problem["hint"]
         self._provider: str = problem["provider"]
-        self.attachments: list = problem["attachments"]  # TODO: Attachment
+        self.attachments = [
+            self.Attachment(**attachment)
+            for attachment in problem["attachments"]
+        ]
         self.can_edit: bool = problem["canEdit"]
         self.limits: dict[str, list[int]] = problem["limits"]
         self.std_code: str = problem["stdCode"]
@@ -263,6 +263,30 @@ class Problem(Model):
         self.difficulty: int = problem["difficulty"]
         self.full_score: int = problem["fullScore"]
         self.type: str = problem["type"]
+
+    class Attachment(Model):
+        """附件
+
+        :var str download_link: 下载链接
+        :var int size: 大小
+        :var int upload_time: 上传时间
+        :var str id: ID
+        :var str filename: 文件名
+        """
+
+        def __init__(
+            self,
+            downloadLink: str,
+            size: int,
+            uploadTime: int,
+            id: str,
+            filename: str,
+        ) -> None:
+            self.download_link = downloadLink
+            self.size = size
+            self.upload_time = uploadTime
+            self.id = id
+            self.filename = filename
 
     @property
     @cached_method
