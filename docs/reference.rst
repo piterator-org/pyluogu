@@ -8,3 +8,5 @@
 .. autoclass:: luogu.User
 
    .. autoclass:: luogu.User.Prize
+
+.. autoclass:: luogu.Problem
