@@ -8,15 +8,25 @@
 模型
 ====
 
-.. autoclass:: luogu.User
-
-   .. autoclass:: luogu.User.Prize
-
 .. autoclass:: luogu.Problem
+
+.. autoclass:: luogu.User
+   :members:
+
+
+会话
+====
+
+.. autoclass:: luogu.Session
+   :members:
 
 
 异常
 ====
+
+.. autoexception:: HttpException
+
+.. autoexception:: AccessDeniedHttpException
 
 .. autoexception:: luogu.NotFoundHttpException
 

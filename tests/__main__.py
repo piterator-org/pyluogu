@@ -1,6 +1,7 @@
 import unittest
 
 import luogu
+from requests.cookies import RequestsCookieJar
 
 
 class TestUser(unittest.TestCase):
@@ -10,11 +11,18 @@ class TestUser(unittest.TestCase):
         )
 
     def test_equal(self):
-        self.assertEqual(luogu.User(1), luogu.User(1))
+        u = luogu.User(1)
+        self.assertEqual(u, luogu.User(1))
+        self.assertNotEqual(u, luogu.User(2))
+        self.assertNotEqual(u, 1)
+
+    def test_repr(self):
+        u = luogu.User(3)
+        self.assertEqual({**eval(repr(u)), **u.__dict__}, u.__dict__)
 
     def test_kkksc03(self):
         u = luogu.User(1)
-        self.assertIsInstance(u.prize, list)
+        self.assertIn(luogu.User.Prize(2019, "CSP入门", "一等奖"), u.prize)
         self.assertEqual(u.uid, 1)
         self.assertEqual(u.name, "kkksc03")
         self.assertEqual(u.is_admin, True)
@@ -39,17 +47,35 @@ class TestUser(unittest.TestCase):
 
 
 class TestProblem(unittest.TestCase):
+    def test_403(self):
+        self.assertRaisesRegex(
+            luogu.AccessDeniedHttpException,
+            r"^您无权查看该题目$",
+            luogu.Problem,
+            "T1000",
+        )
+
     def test_404(self):
         self.assertRaisesRegex(
             luogu.NotFoundHttpException, r"^题目未找到$", luogu.Problem, "P0001"
         )
 
+    def test_equal(self):
+        p = luogu.Problem("P1000")
+        self.assertEqual(p, luogu.Problem("P1000"))
+        self.assertNotEqual(p, luogu.Problem("P1001"))
+
     def test_P1001(self):
         p = luogu.Problem("P1001")
         self.assertEqual(p.pid, "P1001")
 
-    def test_equal(self):
-        self.assertEqual(luogu.Problem("P1001"), luogu.Problem("P1001"))
+
+class TestSession(unittest.TestCase):
+    def test_creation(self):
+        self.assertIsInstance(
+            luogu.Session("__client_id=0123456789abcdef; _uid=0").cookies,
+            RequestsCookieJar,
+        )
 
 
 if __name__ == "__main__":

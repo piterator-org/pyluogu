@@ -7,9 +7,11 @@ A model-based Python implement for Luogu API client
 洛谷 API 客户端基于模型的 Python 实现
 """
 
+from http.cookies import SimpleCookie
 from pprint import pformat
 
 import requests
+import requests.cookies
 
 USER_AGENT = "Mozilla/5.0"
 
@@ -26,8 +28,16 @@ def cached_method(func):
     return wrapper
 
 
-class NotFoundHttpException(Exception):
+class HttpException(Exception):
     pass
+
+
+class AccessDeniedHttpException(HttpException):
+    "403"
+
+
+class NotFoundHttpException(HttpException):
+    "404"
 
 
 def _dict_without_underscores(d: dict):
@@ -35,16 +45,25 @@ def _dict_without_underscores(d: dict):
 
 
 class Model:
+    _cookies: "requests.cookies.RequestsCookieJar | None" = None
+
     def _get(self, url, params=None):
         r = requests.get(
             url,
             params=params,
             headers={"User-Agent": USER_AGENT, "X-Luogu-Type": "content-only"},
+            cookies=self._cookies,
         )
         r.raise_for_status()
         data = r.json()
         if data["code"] == 404:
             raise NotFoundHttpException(data["currentData"]["errorMessage"])
+        elif data["code"] == 403:
+            raise AccessDeniedHttpException(
+                data["currentData"]["errorMessage"]
+            )
+        elif data["code"] >= 400:
+            raise HttpException(data["currentData"]["errorMessage"])
         return data
 
     def __repr__(self):
@@ -56,9 +75,12 @@ class Model:
     def __eq__(self, other):
         if hasattr(self, "_current_data") and hasattr(other, "_current_data"):
             return self._current_data == other._current_data
-        return _dict_without_underscores(
-            self.__dict__
-        ) == _dict_without_underscores(other.__dict__)
+        if type(other) is type(self):
+            return _dict_without_underscores(
+                self.__dict__
+            ) == _dict_without_underscores(other.__dict__)
+        else:
+            super().__eq__(other)
 
 
 class LazyList(list):
@@ -127,7 +149,7 @@ class User(Model):
             self.contest_name = contestName
             self.prize = prize
 
-    def __init__(self, uid: int) -> None:
+    def __init__(self, uid: "int | str") -> None:
         self._current_data: dict[str] = self._get(
             f"https://www.luogu.com.cn/user/{uid}"
         )["currentData"]
@@ -184,6 +206,7 @@ class Problem(Model):
     :param pid: 题目 ID
     :type pid: str
 
+    :raises AccessDeniedHttpException: 您无权查看该题目
     :raises NotFoundHttpException: 题目未找到
 
     :var str background: 题目背景
@@ -245,3 +268,20 @@ class Problem(Model):
     @cached_method
     def provider(self):
         return User(self._provider["uid"])
+
+
+class Session:
+    """会话"""
+
+    def __init__(self, cookies: "str | dict") -> None:
+        self.cookies = requests.cookies.cookiejar_from_dict(
+            {k: v.value for k, v in SimpleCookie(cookies).items()}
+        )
+        self.Problem._cookies = self.cookies
+        self.User._cookies = self.cookies
+
+    class Problem(Problem):
+        pass
+
+    class User(User):
+        pass
