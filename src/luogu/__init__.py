@@ -80,6 +80,8 @@ class User(Model):
     :param uid: 用户 ID
     :type uid: int
 
+    :raises NotFoundHttpException: 用户未找到
+
     :var register_time: 注册时间
     :vartype register_time: int
     :var introduction: 个人介绍
@@ -196,6 +198,8 @@ class Problem(Model):
 
     :param pid: 题目 ID
     :type pid: str
+
+    :raises NotFoundHttpException: 题目未找到
 
     :var background: 题目背景
     :vartype background: str
