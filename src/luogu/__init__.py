@@ -69,7 +69,7 @@ class Model:
     def __repr__(self):
         return pformat(
             _dict_without_underscores(self.__dict__),
-            sort_dicts=False,
+            # sort_dicts=False,  # Python 3.8+ only
         )
 
     def __eq__(self, other):
