@@ -315,6 +315,23 @@ class Session:
         self.Problem._session = self.session
         self.User._session = self.session
 
+    def _csrf_token(self, url: str = "https://www.luogu.com.cn/") -> str:
+        class HTMLCSRFTokenParser(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                try:
+                    if tag == "meta" and attrs["name"] == "csrf-token":
+                        raise StopIteration(attrs["content"])
+                except KeyError:
+                    pass
+
+        r = self.session.get(url)
+        r.raise_for_status()
+        try:
+            HTMLCSRFTokenParser().feed(r.text)
+        except StopIteration as csrf_token:
+            return str(csrf_token)
+
     def captcha(self, show: bool = True) -> bytes:
         """获取验证码
 
@@ -341,33 +358,33 @@ class Session:
         :rtype: dict[str]
         """
 
-        class HTMLCSRFTokenParser(HTMLParser):
-            def handle_starttag(self, tag, attrs):
-                attrs = dict(attrs)
-                try:
-                    if tag == "meta" and attrs["name"] == "csrf-token":
-                        raise StopIteration(attrs["content"])
-                except KeyError:
-                    pass
-
-        r = self.session.get("https://www.luogu.com.cn/auth/login")
+        r = self.session.post(
+            "https://www.luogu.com.cn/api/auth/userPassLogin",
+            headers={
+                "x-csrf-token": self._csrf_token(
+                    "https://www.luogu.com.cn/auth/login"
+                ),
+            },
+            json={
+                "username": username,
+                "password": password,
+                "captcha": captcha,
+            },
+        )
         r.raise_for_status()
-        try:
-            HTMLCSRFTokenParser().feed(r.text)
-        except StopIteration as csrf_token:
-            r = self.session.post(
-                "https://www.luogu.com.cn/api/auth/userPassLogin",
-                headers={
-                    "x-csrf-token": str(csrf_token),
-                },
-                json={
-                    "username": username,
-                    "password": password,
-                    "captcha": captcha,
-                },
-            )
-            r.raise_for_status()
-            return r.json()
+        return r.json()
+
+    def logout(self) -> "dict[str, bool]":
+        """登出
+
+        :rtype: dict[str, bool]
+        """
+        r = self.session.post(
+            "https://www.luogu.com.cn/api/auth/logout",
+            headers={"x-csrf-token": self._csrf_token()},
+        )
+        r.raise_for_status()
+        return r.json()
 
     class Problem(Problem):
         pass

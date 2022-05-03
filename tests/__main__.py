@@ -103,6 +103,7 @@ class TestSession(unittest.TestCase):
             )["username"],
             os.environ["LUOGU_USERNAME"],
         )
+        self.assertTrue(s.logout()["_empty"])
 
 
 if __name__ == "__main__":
