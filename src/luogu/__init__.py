@@ -7,7 +7,9 @@ A model-based Python implement for Luogu API client
 洛谷 API 客户端基于模型的 Python 实现
 """
 
+from html.parser import HTMLParser
 from http.cookies import SimpleCookie
+from io import BytesIO
 from pprint import pformat
 
 import requests
@@ -45,14 +47,13 @@ def _dict_without_underscores(d: dict):
 
 
 class Model:
-    _cookies: "requests.cookies.RequestsCookieJar | None" = None
+    _session = requests.Session()
 
     def _get(self, url, params=None):
-        r = requests.get(
+        r = self._session.get(
             url,
             params=params,
             headers={"User-Agent": USER_AGENT, "X-Luogu-Type": "content-only"},
-            cookies=self._cookies,
         )
         r.raise_for_status()
         data = r.json()
@@ -100,7 +101,7 @@ class User(Model):
     """用户
 
     :param uid: 用户 ID
-    :type uid: int
+    :type uid: int | str
 
     :raises NotFoundHttpException: 用户未找到
 
@@ -200,8 +201,7 @@ class User(Model):
 class Problem(Model):
     """题目
 
-    :param pid: 题目 ID
-    :type pid: str
+    :param str pid: 题目 ID
 
     :raises AccessDeniedHttpException: 您无权查看该题目
     :raises NotFoundHttpException: 题目未找到
@@ -295,14 +295,79 @@ class Problem(Model):
 
 
 class Session:
-    """会话"""
+    """会话
 
-    def __init__(self, cookies: "str | dict") -> None:
+    :param cookies: Cookies
+    :type cookies: str | dict[str, str] | None
+
+    :var requests.cookies.RequestsCookieJar cookies: Cookies
+    :var requests.Session session: 会话
+    """
+
+    def __init__(self, cookies: "str | dict[str, str] | None" = None) -> None:
         self.cookies = requests.cookies.cookiejar_from_dict(
             {k: v.value for k, v in SimpleCookie(cookies).items()}
         )
-        self.Problem._cookies = self.cookies
-        self.User._cookies = self.cookies
+        self.session = requests.Session()
+        self.session.headers["User-Agent"] = USER_AGENT
+        self.session.headers["referer"] = "http://www.luogu.com.cn/"
+        self.session.cookies = self.cookies
+        self.Problem._session = self.session
+        self.User._session = self.session
+
+    def captcha(self, show: bool = True) -> bytes:
+        """获取验证码
+
+        :param bool show:
+            值为真时使用 :meth:`PIL.Image.Image.show` 显示验证码；否则仅返回图片的二进制数据
+
+        :rtype: bytes
+        """
+        r = self.session.get("https://www.luogu.com.cn/api/verify/captcha")
+        r.raise_for_status()
+        if show:
+            from PIL import Image
+
+            Image.open(BytesIO(r.content)).show()
+        return r.content
+
+    def login(self, username: str, password: str, captcha: str) -> "dict[str]":
+        """登录
+
+        :param str username: 用户名
+        :param str password: 密码
+        :param str captcha: 验证码
+
+        :rtype: dict[str]
+        """
+
+        class HTMLCSRFTokenParser(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                try:
+                    if tag == "meta" and attrs["name"] == "csrf-token":
+                        raise StopIteration(attrs["content"])
+                except KeyError:
+                    pass
+
+        r = self.session.get("https://www.luogu.com.cn/auth/login")
+        r.raise_for_status()
+        try:
+            HTMLCSRFTokenParser().feed(r.text)
+        except StopIteration as csrf_token:
+            r = self.session.post(
+                "https://www.luogu.com.cn/api/auth/userPassLogin",
+                headers={
+                    "x-csrf-token": str(csrf_token),
+                },
+                json={
+                    "username": username,
+                    "password": password,
+                    "captcha": captcha,
+                },
+            )
+            r.raise_for_status()
+            return r.json()
 
     class Problem(Problem):
         pass

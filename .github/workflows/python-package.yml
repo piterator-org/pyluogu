@@ -35,3 +35,6 @@ jobs:
       - name: Test with tox
         run: |
           tox --skip-missing-interpreters
+        env:
+          LUOGU_USERNAME: ${{ secrets.LUOGU_USERNAME }}
+          LUOGU_PASSWORD: ${{ secrets.LUOGU_PASSWORD }}

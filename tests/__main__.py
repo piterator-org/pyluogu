@@ -1,4 +1,7 @@
+import os
 import unittest
+
+import requests
 
 import luogu
 from requests.cookies import RequestsCookieJar
@@ -77,9 +80,28 @@ class TestProblem(unittest.TestCase):
 
 class TestSession(unittest.TestCase):
     def test_creation(self):
-        self.assertIsInstance(
-            luogu.Session("__client_id=0123456789abcdef; _uid=0").cookies,
-            RequestsCookieJar,
+        s = luogu.Session("__client_id=0123456789abcdef; _uid=0")
+        self.assertIsInstance(s.cookies, RequestsCookieJar)
+        self.assertIs(s.session.cookies, s.cookies)
+        self.assertIs(s.Problem._session, s.session)
+        self.assertIs(s.User._session, s.session)
+
+    def test_login(self):
+        s = luogu.Session()
+        # s.captcha()
+        r = requests.post(
+            "https://luogu-captcha-bypass.piterator.com/predict",
+            data=s.captcha(show=False),
+            headers={"Content-Type": "image/jpeg"},
+        )
+        r.raise_for_status()
+        self.assertEqual(
+            s.login(
+                os.environ["LUOGU_USERNAME"],
+                os.environ["LUOGU_PASSWORD"],
+                r.text,
+            )["username"],
+            os.environ["LUOGU_USERNAME"],
         )
 
 
