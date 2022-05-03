@@ -111,6 +111,7 @@ class TestSession(unittest.TestCase):
             self.login(s)
 
         p = s.Paste.new("Hello, world!")
+        self.assertEqual(p.user.name, os.environ["LUOGU_USERNAME"])
         self.assertEqual(p.delete(), p.id)
 
         self.assertTrue(s.logout()["_empty"])
