@@ -12,6 +12,7 @@ class TestUser(unittest.TestCase):
         self.assertRaisesRegex(
             luogu.NotFoundHttpException, r"^用户未找到$", luogu.User, 0
         )
+        self.assertEqual(len(luogu.User.search("0")), 0)
 
     def test_equal(self):
         u = luogu.User(1)
@@ -21,7 +22,7 @@ class TestUser(unittest.TestCase):
 
     def test_repr(self):
         u = luogu.User(3)
-        self.assertEqual({**eval(repr(u)), **u.__dict__}, u.__dict__)
+        self.assertEqual(repr(u), f"User({u.uid})")
 
     def test_kkksc03(self):
         u = luogu.User(1)
@@ -45,7 +46,7 @@ class TestUser(unittest.TestCase):
         self.assertIsInstance(passed_problems[0], luogu.Problem)
         submitted_problems = u.submitted_problems
         self.assertIsInstance(submitted_problems[0], luogu.Problem)
-        self.assertIsInstance(submitted_problems[0].provider, luogu.User)
+        self.assertIsInstance(next(iter(submitted_problems)), luogu.Problem)
         self.assertIsInstance(submitted_problems[0].provider, luogu.User)
 
 
@@ -71,6 +72,7 @@ class TestProblem(unittest.TestCase):
     def test_P1001(self):
         p = luogu.Problem("P1001")
         self.assertEqual(p.pid, "P1001")
+        self.assertEqual(repr(p), f"Problem({p.pid})")
 
     def test_attachment(self):
         attachment = luogu.Problem("P7912").attachments[0]

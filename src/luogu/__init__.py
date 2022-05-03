@@ -10,7 +10,6 @@ A model-based Python implement for Luogu API client
 from html.parser import HTMLParser
 from http.cookies import SimpleCookie
 from io import BytesIO
-from pprint import pformat
 
 import requests
 import requests.cookies
@@ -107,10 +106,7 @@ class Model:
         return r.json()
 
     def __repr__(self):
-        return pformat(
-            _dict_without_underscores(self.__dict__),
-            # sort_dicts=False,  # Python 3.8+ only
-        )
+        return f"{self.__class__.__name__}({self.id})"
 
     def __eq__(self, other):
         if hasattr(self, "_current_data") and hasattr(other, "_current_data"):
@@ -124,16 +120,16 @@ class Model:
 
 
 class LazyList(list):
-    def __init__(self, iterable, getitem=lambda i: i):
-        if iterable is None:
-            super().__init__()
-        else:
-            super().__init__(iterable)
-        self._getitem = getitem
+    def __init__(self, iterable):
+        super().__init__(iterable)
 
     @cached_method
     def __getitem__(self, index):
-        return self._getitem(super().__getitem__(index))
+        return super().__getitem__(index)()
+
+    def __iter__(self):
+        for i in super().__iter__():
+            yield i()
 
 
 class User(Model):
@@ -214,27 +210,34 @@ class User(Model):
         self.background: str = user["background"]
         self.is_root: bool = user["isRoot"] if "isRoot" in user else None
 
-        def get_problem(p: dict) -> Problem:
-            return Problem(p["pid"])
-
         self._passed_problems: list[dict] = (
             self._current_data["passedProblems"]
             if "passedProblems" in self._current_data
             else None
         )
-        self.passed_problems: list[Problem] = LazyList(
-            self._passed_problems,
-            get_problem,
+        self.passed_problems: list[Problem] = (
+            LazyList(
+                [lambda: Problem(p["pid"]) for p in self._passed_problems],
+            )
+            if self._passed_problems
+            else []
         )
         self._submitted_problems: list[dict] = (
             self._current_data["submittedProblems"]
             if "submittedProblems" in self._current_data
             else None
         )
-        self.submitted_problems: list[Problem] = LazyList(
-            self._submitted_problems,
-            get_problem,
+        self.submitted_problems: list[Problem] = (
+            LazyList(
+                [lambda: Problem(p["pid"]) for p in self._submitted_problems],
+            )
+            if self._submitted_problems
+            else []
         )
+
+    @property
+    def id(self):
+        return self.uid
 
     @classmethod
     def search(cls, keyword: str) -> "list[User]":
@@ -247,7 +250,9 @@ class User(Model):
             {"keyword": keyword},
             False,
         )["users"]
-        return LazyList(users, lambda u: User(u["uid"]))
+        return LazyList(
+            [lambda: User(u["uid"]) for u in users if u is not None]
+        )
 
 
 class Paste(Model):
@@ -369,6 +374,10 @@ class Problem(Model):
             self.upload_time = uploadTime
             self.id = id
             self.filename = filename
+
+    @property
+    def id(self):
+        return self.pid
 
     @property
     @cached_method
