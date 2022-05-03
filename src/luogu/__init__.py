@@ -71,21 +71,27 @@ class Model:
     _session.headers["User-Agent"] = USER_AGENT
 
     @classmethod
-    def _get(cls, url: str) -> "dict[str]":
+    def _get(
+        cls, url: str, params: dict = None, check: bool = True
+    ) -> "dict[str]":
         r = cls._session.get(
             url,
+            params=params,
             headers={"X-Luogu-Type": "content-only"},
         )
         r.raise_for_status()
         data = r.json()
-        if data["code"] == 404:
-            raise NotFoundHttpException(data["currentData"]["errorMessage"])
-        elif data["code"] == 403:
-            raise AccessDeniedHttpException(
-                data["currentData"]["errorMessage"]
-            )
-        elif data["code"] >= 400:
-            raise HttpException(data["currentData"]["errorMessage"])
+        if check:
+            if data["code"] == 404:
+                raise NotFoundHttpException(
+                    data["currentData"]["errorMessage"]
+                )
+            elif data["code"] == 403:
+                raise AccessDeniedHttpException(
+                    data["currentData"]["errorMessage"]
+                )
+            elif data["code"] >= 400:
+                raise HttpException(data["currentData"]["errorMessage"])
         return data
 
     @classmethod
@@ -229,6 +235,19 @@ class User(Model):
             self._submitted_problems,
             get_problem,
         )
+
+    @classmethod
+    def search(cls, keyword: str) -> "list[User]":
+        """根据 UID 或用户名搜索用户
+
+        :param str keyword: 搜索关键字
+        """
+        users = cls._get(
+            "https://www.luogu.com.cn/api/user/search",
+            {"keyword": keyword},
+            False,
+        )["users"]
+        return LazyList(users, lambda u: User(u["uid"]))
 
 
 class Paste(Model):

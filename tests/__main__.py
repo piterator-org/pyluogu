@@ -15,7 +15,7 @@ class TestUser(unittest.TestCase):
 
     def test_equal(self):
         u = luogu.User(1)
-        self.assertEqual(u, luogu.User(1))
+        self.assertEqual(u, luogu.User.search("kkksc03")[0])
         self.assertNotEqual(u, luogu.User(2))
         self.assertNotEqual(u, 1)
 
