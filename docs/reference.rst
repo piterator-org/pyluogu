@@ -8,6 +8,9 @@
 模型
 ====
 
+.. autoclass:: luogu.Paste
+   :members:
+
 .. autoclass:: luogu.Problem
    :members:
 

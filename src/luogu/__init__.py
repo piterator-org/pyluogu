@@ -46,14 +46,35 @@ def _dict_without_underscores(d: dict):
     return dict(filter(lambda i: not i[0].startswith("_"), d.items()))
 
 
+def _csrf_token(
+    session: requests.Session, url: str = "https://www.luogu.com.cn/"
+) -> str:
+    class HTMLCSRFTokenParser(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            try:
+                if tag == "meta" and attrs["name"] == "csrf-token":
+                    raise StopIteration(attrs["content"])
+            except KeyError:
+                pass
+
+    r = session.get(url)
+    r.raise_for_status()
+    try:
+        HTMLCSRFTokenParser().feed(r.text)
+    except StopIteration as csrf_token:
+        return str(csrf_token)
+
+
 class Model:
     _session = requests.Session()
+    _session.headers["User-Agent"] = USER_AGENT
 
-    def _get(self, url, params=None):
-        r = self._session.get(
+    @classmethod
+    def _get(cls, url: str) -> "dict[str]":
+        r = cls._session.get(
             url,
-            params=params,
-            headers={"User-Agent": USER_AGENT, "X-Luogu-Type": "content-only"},
+            headers={"X-Luogu-Type": "content-only"},
         )
         r.raise_for_status()
         data = r.json()
@@ -66,6 +87,18 @@ class Model:
         elif data["code"] >= 400:
             raise HttpException(data["currentData"]["errorMessage"])
         return data
+
+    @classmethod
+    def _post(cls, url: str, data: dict = None) -> "dict[str]":
+        r = cls._session.post(
+            url,
+            json=data,
+            headers={
+                "x-csrf-token": _csrf_token(cls._session),
+            },
+        )
+        r.raise_for_status()
+        return r.json()
 
     def __repr__(self):
         return pformat(
@@ -198,6 +231,36 @@ class User(Model):
         )
 
 
+class Paste(Model):
+    """剪贴板
+
+    :param str id: 剪贴板 ID
+
+    :var str data: 内容
+    :var str id: 剪贴板 ID
+    :var User user: 用户
+    :var int time: 时间
+    :var bool public: 是否公开
+    """
+
+    def __init__(self, id: str) -> None:
+        self._current_data: dict[str] = self._get(
+            f"https://www.luogu.com.cn/paste/{id}"
+        )["currentData"]
+
+        paste: dict[str] = self._current_data["paste"]
+        self.data: str = paste["data"]
+        self.id: str = paste["id"]
+        self._user: dict[str] = paste["user"]
+        self.time: int = paste["time"]
+        self.public: bool = paste["public"]
+
+    @property
+    @cached_method
+    def user(self) -> User:
+        return User(self._user["uid"])
+
+
 class Problem(Model):
     """题目
 
@@ -312,25 +375,9 @@ class Session:
         self.session.headers["User-Agent"] = USER_AGENT
         self.session.headers["referer"] = "http://www.luogu.com.cn/"
         self.session.cookies = self.cookies
+        self.Paste._session = self.session
         self.Problem._session = self.session
         self.User._session = self.session
-
-    def _csrf_token(self, url: str = "https://www.luogu.com.cn/") -> str:
-        class HTMLCSRFTokenParser(HTMLParser):
-            def handle_starttag(self, tag, attrs):
-                attrs = dict(attrs)
-                try:
-                    if tag == "meta" and attrs["name"] == "csrf-token":
-                        raise StopIteration(attrs["content"])
-                except KeyError:
-                    pass
-
-        r = self.session.get(url)
-        r.raise_for_status()
-        try:
-            HTMLCSRFTokenParser().feed(r.text)
-        except StopIteration as csrf_token:
-            return str(csrf_token)
 
     def captcha(self, show: bool = True) -> bytes:
         """获取验证码
@@ -361,8 +408,8 @@ class Session:
         r = self.session.post(
             "https://www.luogu.com.cn/api/auth/userPassLogin",
             headers={
-                "x-csrf-token": self._csrf_token(
-                    "https://www.luogu.com.cn/auth/login"
+                "x-csrf-token": _csrf_token(
+                    self.session, "https://www.luogu.com.cn/auth/login"
                 ),
             },
             json={
@@ -381,10 +428,36 @@ class Session:
         """
         r = self.session.post(
             "https://www.luogu.com.cn/api/auth/logout",
-            headers={"x-csrf-token": self._csrf_token()},
+            headers={"x-csrf-token": _csrf_token(self.session)},
         )
         r.raise_for_status()
         return r.json()
+
+    class Paste(Paste):
+        def delete(self) -> str:
+            """删除剪贴板
+
+            :returns: 剪贴板 ID
+            :rtype: str
+            """
+            return self._post(
+                f"https://www.luogu.com.cn/paste/delete/{self.id}"
+            )["id"]
+
+        @classmethod
+        def new(cls, data: str, public: bool = None) -> "Session.Paste":
+            """新建剪贴板
+
+            :param str data: 剪贴板内容
+            :param bool public: 值为真时表示公开剪贴板，否则表示私有剪贴板
+
+            :rtype: Session.Paste
+            """
+            r = cls._post(
+                "https://www.luogu.com.cn/paste/new",
+                {"data": data, "public": public},
+            )
+            return cls(r["id"])
 
     class Problem(Problem):
         pass

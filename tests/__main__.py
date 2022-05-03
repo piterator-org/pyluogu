@@ -86,9 +86,7 @@ class TestSession(unittest.TestCase):
         self.assertIs(s.Problem._session, s.session)
         self.assertIs(s.User._session, s.session)
 
-    def test_login(self):
-        s = luogu.Session()
-        # s.captcha()
+    def login(self, s: luogu.Session):
         r = requests.post(
             "https://luogu-captcha-bypass.piterator.com/predict",
             data=s.captcha(show=False),
@@ -103,6 +101,18 @@ class TestSession(unittest.TestCase):
             )["username"],
             os.environ["LUOGU_USERNAME"],
         )
+
+    def test_login(self):
+        s = luogu.Session()
+        # s.captcha()
+        try:
+            self.login(s)
+        except requests.HTTPError:
+            self.login(s)
+
+        p = s.Paste.new("Hello, world!")
+        self.assertEqual(p.delete(), p.id)
+
         self.assertTrue(s.logout()["_empty"])
 
 
