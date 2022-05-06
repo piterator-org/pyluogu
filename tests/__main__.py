@@ -15,9 +15,7 @@ class TestCase(unittest.TestCase):
 
 class TestUser(TestCase):
     def test_404(self):
-        self.assertRaisesRegex(
-            luogu.NotFoundHttpException, r"^用户未找到$", luogu.User, 0
-        )
+        self.assertRaisesRegex(luogu.NotFoundHttpException, r"^用户未找到$", luogu.User, 0)
         self.assertEqual(len(luogu.User.search("0")), 0)
 
     def test_equal(self):
@@ -25,10 +23,6 @@ class TestUser(TestCase):
         self.assertEqual(u, luogu.User.search("kkksc03")[0])
         self.assertNotEqual(u, luogu.User(2))
         self.assertNotEqual(u, 1)
-
-    def test_repr(self):
-        u = luogu.User(3)
-        self.assertEqual(repr(u), f"User({u.uid})")
 
     def test_kkksc03(self):
         u = luogu.User(1)
@@ -45,6 +39,9 @@ class TestUser(TestCase):
         self.assertEqual(u.name, "wangxinhe")
         self.assertEqual(u.is_admin, False)
         self.assertIs(u.is_root, None)
+        self.assertEqual(repr(u), f"User({u.uid})")
+        self.assertRegex(repr(u.passed_problems), r"^\[(.|\n)+\]$")
+        self.assertRegex(repr(u.submitted_problems), r"^\[(.|\n)+\]$")
 
     def test_problems(self):
         u = luogu.User(108135)
@@ -91,8 +88,10 @@ class TestSession(TestCase):
         s = luogu.Session("__client_id=0123456789abcdef; _uid=0")
         self.assertIsInstance(s.cookies, RequestsCookieJar)
         self.assertIs(s.session.cookies, s.cookies)
+        self.assertIs(s.Paste._session, s.session)
         self.assertIs(s.Problem._session, s.session)
         self.assertIs(s.User._session, s.session)
+        self.assertIsNot(s.Problem._session, luogu.Problem._session)
 
     def login(self, s: luogu.Session):
         r = requests.post(
