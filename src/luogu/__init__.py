@@ -131,6 +131,9 @@ class LazyList(list):
         for i in super().__iter__():
             yield i()
 
+    def __repr__(self) -> str:
+        return f"LazyList([{', '.join([item.__class__.__name__ for item in self])}])"
+
 
 class User(Model):
     """用户
