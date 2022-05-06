@@ -1,13 +1,19 @@
 import os
 import unittest
-
-import requests
+from time import sleep
 
 import luogu
+import requests
 from requests.cookies import RequestsCookieJar
 
 
-class TestUser(unittest.TestCase):
+class TestCase(unittest.TestCase):
+    def tearDown(self):
+        super().tearDown()
+        sleep(0.33)
+
+
+class TestUser(TestCase):
     def test_404(self):
         self.assertRaisesRegex(
             luogu.NotFoundHttpException, r"^用户未找到$", luogu.User, 0
@@ -50,7 +56,7 @@ class TestUser(unittest.TestCase):
         self.assertIsInstance(submitted_problems[0].provider, luogu.User)
 
 
-class TestProblem(unittest.TestCase):
+class TestProblem(TestCase):
     def test_403(self):
         self.assertRaisesRegex(
             luogu.AccessDeniedHttpException,
@@ -80,7 +86,7 @@ class TestProblem(unittest.TestCase):
         self.assertEqual(attachment.filename, "fruit.zip")
 
 
-class TestSession(unittest.TestCase):
+class TestSession(TestCase):
     def test_creation(self):
         s = luogu.Session("__client_id=0123456789abcdef; _uid=0")
         self.assertIsInstance(s.cookies, RequestsCookieJar)
@@ -114,6 +120,9 @@ class TestSession(unittest.TestCase):
 
         p = s.Paste.new("Hello, world!")
         self.assertEqual(p.user.name, os.environ["LUOGU_USERNAME"])
+        self.assertEqual(p.edit("Hello, Luogu!", False), p.id)
+        self.assertEqual(p.data, "Hello, Luogu!")
+        self.assertEqual(p.public, False)
         self.assertEqual(p.delete(), p.id)
 
         self.assertTrue(s.logout()["_empty"])

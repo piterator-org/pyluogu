@@ -472,6 +472,25 @@ class Session:
                 f"https://www.luogu.com.cn/paste/delete/{self.id}"
             )["id"]
 
+        def edit(self, data: str = None, public: bool = None):
+            """编辑剪贴板
+
+            :param str data: 剪贴板内容
+            :param bool public: 是否公开
+
+            :returns: 剪贴板 ID
+            :rtype: str
+            """
+            r = self._post(
+                f"https://www.luogu.com.cn/paste/edit/{self.id}",
+                {"data": data, "public": public},
+            )
+            if data is not None:
+                self.data = data
+            if public is not None:
+                self.public = public
+            return r["id"]
+
         @classmethod
         def new(cls, data: str, public: bool = None) -> "Session.Paste":
             """新建剪贴板
