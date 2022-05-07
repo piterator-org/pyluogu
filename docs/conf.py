@@ -33,12 +33,20 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx_inline_tabs",
+    "hoverxref.extension",
 ]
+
 intersphinx_mapping = {
     "python": ("https://docs.python.org/zh-cn/3", None),
     "requests": ("https://docs.python-requests.org/zh_CN/latest", None),
     "PIL": ("https://pillow.readthedocs.io/en/stable", None),
 }
+hoverxref_auto_ref = True
+hoverxref_intersphinx = [
+    "python",
+    "requests",
+    "PIL",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
