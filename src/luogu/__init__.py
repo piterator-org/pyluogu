@@ -8,5 +8,16 @@ A model-based Python implement for Luogu API client
 """
 
 from .exceptions import AccessDeniedHttpException, HttpException, NotFoundHttpException
-from .models import Paste, Problem, User
+from .models.main import Problem, User
+from .models.paste import Paste
 from .session import Session
+
+__all__ = (
+    "AccessDeniedHttpException",
+    "HttpException",
+    "NotFoundHttpException",
+    "Paste",
+    "Problem",
+    "Session",
+    "User",
+)

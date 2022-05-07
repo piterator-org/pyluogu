@@ -4,7 +4,8 @@ from io import BytesIO
 import requests
 
 from .constants import USER_AGENT
-from .models import Paste, Problem, User
+from .models.main import Problem, User
+from .models.paste import Paste
 from .utils import get_csrf_token
 
 
