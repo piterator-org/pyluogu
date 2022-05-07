@@ -53,7 +53,7 @@ class Session:
         if show:
             from PIL import Image
 
-            Image.open(BytesIO(r.content)).show()
+            Image.open(BytesIO(r.content)).show(title="CAPTCHA")
         return r.content
 
     def login(self, username: str, password: str, captcha: str) -> "dict[str]":
