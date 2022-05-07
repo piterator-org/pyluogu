@@ -12,6 +12,8 @@ from .models.main import Problem, User
 from .models.paste import Paste
 from .session import Session
 
+__version__ = "0.0.1"
+
 __all__ = (
     "AccessDeniedHttpException",
     "HttpException",
