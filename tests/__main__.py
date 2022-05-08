@@ -1,5 +1,6 @@
 import os
 import unittest
+from datetime import datetime
 from time import sleep
 
 import luogu
@@ -26,6 +27,8 @@ class TestUser(TestCase):
 
     def test_kkksc03(self):
         u = luogu.User(1)
+        self.assertIsInstance(u.register_time, datetime)
+        self.assertEqual(u.register_time.year, 2012)
         self.assertIn(luogu.User.Prize(2019, "CSP入门", "一等奖"), u.prize)
         self.assertEqual(u.uid, 1)
         self.assertEqual(u.name, "kkksc03")
@@ -34,6 +37,8 @@ class TestUser(TestCase):
 
     def test_wangxinhe(self):
         u = luogu.User(108135)
+        self.assertIsInstance(u.register_time, datetime)
+        self.assertEqual(u.register_time.year, 2018)
         self.assertIsInstance(u.prize, list)
         self.assertEqual(u.uid, 108135)
         self.assertEqual(u.name, "wangxinhe")

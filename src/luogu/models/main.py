@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ..utils import LazyList, cached_method
 from . import Model
 
@@ -10,7 +12,7 @@ class User(Model):
 
     :raises NotFoundHttpException: 用户未找到
 
-    :var int register_time: 注册时间
+    :var datetime.datetime register_time: 注册时间
     :var str introduction: 个人介绍
     :var list[Prize] prize: 获奖信息
     :var str blog_address: 个人博客地址
@@ -58,7 +60,7 @@ class User(Model):
         )["currentData"]
 
         user: dict[str] = self._current_data["user"]
-        self.register_time: int = user["registerTime"]
+        self.register_time = datetime.fromtimestamp(user["registerTime"])
         self.introduction: str = user["introduction"]
         self.prize = [self.Prize(**prize) for prize in user["prize"]]
         self.blog_address: str = user["blogAddress"]
@@ -191,7 +193,7 @@ class Problem(Model):
 
         :var str download_link: 下载链接
         :var int size: 大小
-        :var int upload_time: 上传时间
+        :var datetime.datetime upload_time: 上传时间
         :var str id: ID
         :var str filename: 文件名
         """
@@ -206,7 +208,7 @@ class Problem(Model):
         ) -> None:
             self.download_link = downloadLink
             self.size = size
-            self.upload_time = uploadTime
+            self.upload_time = datetime.fromtimestamp(uploadTime)
             self.id = id
             self.filename = filename
 

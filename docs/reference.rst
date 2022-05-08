@@ -11,11 +11,21 @@
 .. autoclass:: luogu.Paste
    :members:
 
+   .. versionchanged:: 0.1
+      变量 *time* 的类型自 :class:`int` 改为 :class:`datetime.datetime`
+
 .. autoclass:: luogu.Problem
-   :members:
+
+   .. autoclass:: luogu.Problem.Attachment
+
+      .. versionchanged:: 0.1
+         变量 *upload_time* 的类型自 :class:`int` 改为 :class:`datetime.datetime`
 
 .. autoclass:: luogu.User
    :members:
+
+   .. versionchanged:: 0.1
+      变量 *register_time* 的类型自 :class:`int` 改为 :class:`datetime.datetime`
 
 
 会话

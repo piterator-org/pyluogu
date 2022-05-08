@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ..utils import cached_method
 from . import Model
 from .main import User
@@ -11,7 +13,7 @@ class Paste(Model):
     :var str data: 内容
     :var str id: 剪贴板 ID
     :var User user: 用户
-    :var int time: 时间
+    :var datetime.datetime time: 时间
     :var bool public: 是否公开
     """
 
@@ -24,7 +26,7 @@ class Paste(Model):
         self.data: str = paste["data"]
         self.id: str = paste["id"]
         self._user: dict[str] = paste["user"]
-        self.time: int = paste["time"]
+        self.time = datetime.fromtimestamp(paste["time"])
         self.public: bool = paste["public"]
 
     @property
