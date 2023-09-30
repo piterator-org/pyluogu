@@ -125,6 +125,35 @@ class User(Model):
         return LazyList(User, [u["uid"] for u in users if u is not None])
 
 
+class ProblemList(Model):
+    """题目列表
+
+    :param str type: 题库
+    :param int page: 页码
+    :param str keyword: 关键词
+    :param int difficulty: 难度
+    :param str tag: 标签
+    :param bool content: 搜索题目内容
+
+    :var str type: 题库
+    :var int page: 页码
+    :var list problems: 题目列表
+    :var int problem_count: 题目数量
+    """
+
+    def __init__(self, page: int = 1, type: str = 'P', keyword: str = '', difficulty: int | str = '', tag: str = '', content: bool = False) -> None:
+        self._current_data: dict[str] = self._get(
+            f"https://www.luogu.com.cn/problem/list?page={page}&type={type}&keyword={keyword}&difficulty={difficulty}&tag={tag}&content={'true' if content else 'false'}&_contentOnly=1"
+        )["currentData"]
+
+        self.page: int = self._current_data['page']
+        self.type = type
+
+        problems: dict = self._current_data['problems']
+        self.problem_count = problems['count']
+        self.problems = problems['result']
+
+
 class Problem(Model):
     """题目
 
